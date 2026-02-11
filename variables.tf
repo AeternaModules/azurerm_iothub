@@ -78,9 +78,9 @@ EOT
     location                      = string
     name                          = string
     resource_group_name           = string
-    event_hub_partition_count     = optional(number, 4)
-    event_hub_retention_in_days   = optional(number, 1)
-    local_authentication_enabled  = optional(bool, true)
+    event_hub_partition_count     = optional(number) # Default: 4
+    event_hub_retention_in_days   = optional(number) # Default: 1
+    local_authentication_enabled  = optional(bool)   # Default: true
     min_tls_version               = optional(string)
     public_network_access_enabled = optional(bool)
     tags                          = optional(map(string))
@@ -89,25 +89,25 @@ EOT
       name     = string
     })
     cloud_to_device = optional(object({
-      default_ttl = optional(string, "PT1H")
+      default_ttl = optional(string) # Default: "PT1H"
       feedback = optional(object({
-        lock_duration      = optional(string, "PT60S")
-        max_delivery_count = optional(number, 10)
-        time_to_live       = optional(string, "PT1H")
+        lock_duration      = optional(string) # Default: "PT60S"
+        max_delivery_count = optional(number) # Default: 10
+        time_to_live       = optional(string) # Default: "PT1H"
       }))
-      max_delivery_count = optional(number, 10)
+      max_delivery_count = optional(number) # Default: 10
     }))
     endpoint = optional(object({
-      authentication_type        = optional(string, "keyBased")
-      batch_frequency_in_seconds = optional(number, 300)
+      authentication_type        = optional(string) # Default: "keyBased"
+      batch_frequency_in_seconds = optional(number) # Default: 300
       connection_string          = optional(string)
       container_name             = optional(string)
-      encoding                   = optional(string, "Avro")
+      encoding                   = optional(string) # Default: "Avro"
       endpoint_uri               = optional(string)
       entity_path                = optional(string)
-      file_name_format           = optional(string, "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}")
+      file_name_format           = optional(string) # Default: "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}"
       identity_id                = optional(string)
-      max_chunk_size_in_bytes    = optional(number, 314572800)
+      max_chunk_size_in_bytes    = optional(number) # Default: 314572800
       name                       = string
       resource_group_name        = optional(string)
       subscription_id            = optional(string)
@@ -119,37 +119,37 @@ EOT
       value          = string
     })))
     fallback_route = optional(object({
-      condition      = optional(string, "true")
-      enabled        = optional(bool, true)
+      condition      = optional(string) # Default: "true"
+      enabled        = optional(bool)   # Default: true
       endpoint_names = optional(list(string))
-      source         = optional(string, "DeviceMessages")
+      source         = optional(string) # Default: "DeviceMessages"
     }))
     file_upload = optional(object({
-      authentication_type = optional(string, "keyBased")
+      authentication_type = optional(string) # Default: "keyBased"
       connection_string   = string
       container_name      = string
-      default_ttl         = optional(string, "PT1H")
+      default_ttl         = optional(string) # Default: "PT1H"
       identity_id         = optional(string)
-      lock_duration       = optional(string, "PT1M")
-      max_delivery_count  = optional(number, 10)
-      notifications       = optional(bool, false)
-      sas_ttl             = optional(string, "PT1H")
+      lock_duration       = optional(string) # Default: "PT1M"
+      max_delivery_count  = optional(number) # Default: 10
+      notifications       = optional(bool)   # Default: false
+      sas_ttl             = optional(string) # Default: "PT1H"
     }))
     identity = optional(object({
       identity_ids = optional(set(string))
       type         = string
     }))
     network_rule_set = optional(object({
-      apply_to_builtin_eventhub_endpoint = optional(bool, false)
-      default_action                     = optional(string, "Deny")
+      apply_to_builtin_eventhub_endpoint = optional(bool)   # Default: false
+      default_action                     = optional(string) # Default: "Deny"
       ip_rule = optional(object({
-        action  = optional(string, "Allow")
+        action  = optional(string) # Default: "Allow"
         ip_mask = string
         name    = string
       }))
     }))
     route = optional(object({
-      condition      = optional(string, "true")
+      condition      = optional(string) # Default: "true"
       enabled        = bool
       endpoint_names = list(string)
       name           = string
