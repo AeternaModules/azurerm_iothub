@@ -1,3 +1,7 @@
+output "iothubs_id" {
+  description = "Map of id values across all iothubs, keyed the same as var.iothubs"
+  value       = { for k, v in azurerm_iothub.iothubs : k => v.id }
+}
 output "iothubs_cloud_to_device" {
   description = "Map of cloud_to_device values across all iothubs, keyed the same as var.iothubs"
   value       = { for k, v in azurerm_iothub.iothubs : k => v.cloud_to_device }
