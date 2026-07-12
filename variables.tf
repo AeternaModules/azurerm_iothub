@@ -90,14 +90,14 @@ EOT
     })
     cloud_to_device = optional(object({
       default_ttl = optional(string) # Default: "PT1H"
-      feedback = optional(object({
+      feedback = optional(list(object({
         lock_duration      = optional(string) # Default: "PT60S"
         max_delivery_count = optional(number) # Default: 10
         time_to_live       = optional(string) # Default: "PT1H"
-      }))
+      })))
       max_delivery_count = optional(number) # Default: 10
     }))
-    endpoint = optional(object({
+    endpoint = optional(list(object({
       authentication_type        = optional(string) # Default: "keyBased"
       batch_frequency_in_seconds = optional(number) # Default: 300
       connection_string          = optional(string)
@@ -112,7 +112,7 @@ EOT
       resource_group_name        = optional(string)
       subscription_id            = optional(string)
       type                       = string
-    }))
+    })))
     enrichment = optional(list(object({
       endpoint_names = list(string)
       key            = string
@@ -139,22 +139,22 @@ EOT
       identity_ids = optional(set(string))
       type         = string
     }))
-    network_rule_set = optional(object({
+    network_rule_set = optional(list(object({
       apply_to_builtin_eventhub_endpoint = optional(bool)   # Default: false
       default_action                     = optional(string) # Default: "Deny"
-      ip_rule = optional(object({
+      ip_rule = optional(list(object({
         action  = optional(string) # Default: "Allow"
         ip_mask = string
         name    = string
-      }))
-    }))
-    route = optional(object({
+      })))
+    })))
+    route = optional(list(object({
       condition      = optional(string) # Default: "true"
       enabled        = bool
       endpoint_names = list(string)
       name           = string
       source         = string
-    }))
+    })))
   }))
   validation {
     condition = alltrue([
@@ -163,118 +163,6 @@ EOT
       )
     ])
     error_message = "Each enrichment list must contain at most 10 items"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.sku.capacity >= 1 && v.sku.capacity <= 200
-      )
-    ])
-    error_message = "must be between 1 and 200"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.event_hub_partition_count == null || (v.event_hub_partition_count >= 2 && v.event_hub_partition_count <= 128)
-      )
-    ])
-    error_message = "must be between 2 and 128"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.event_hub_retention_in_days == null || (v.event_hub_retention_in_days >= 1 && v.event_hub_retention_in_days <= 7)
-      )
-    ])
-    error_message = "must be between 1 and 7"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.file_upload == null || (v.file_upload.max_delivery_count == null || (v.file_upload.max_delivery_count >= 1 && v.file_upload.max_delivery_count <= 100))
-      )
-    ])
-    error_message = "must be between 1 and 100"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.endpoint == null || (contains(["AzureIotHub.StorageContainer", "AzureIotHub.ServiceBusQueue", "AzureIotHub.ServiceBusTopic", "AzureIotHub.EventHub"], v.endpoint.type))
-      )
-    ])
-    error_message = "must be one of: AzureIotHub.StorageContainer, AzureIotHub.ServiceBusQueue, AzureIotHub.ServiceBusTopic, AzureIotHub.EventHub"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.endpoint == null || (v.endpoint.endpoint_uri == null || (length(v.endpoint.endpoint_uri) > 0))
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.endpoint == null || (v.endpoint.batch_frequency_in_seconds == null || (v.endpoint.batch_frequency_in_seconds >= 60 && v.endpoint.batch_frequency_in_seconds <= 720))
-      )
-    ])
-    error_message = "must be between 60 and 720"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.endpoint == null || (v.endpoint.max_chunk_size_in_bytes == null || (v.endpoint.max_chunk_size_in_bytes >= 10485760 && v.endpoint.max_chunk_size_in_bytes <= 524288000))
-      )
-    ])
-    error_message = "must be between 10485760 and 524288000"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.endpoint == null || (v.endpoint.subscription_id == null || (can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", v.endpoint.subscription_id))))
-      )
-    ])
-    error_message = "must be a valid UUID"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.route == null || (can(regex("^[-_.a-zA-Z0-9]{1,64}$", v.route.name)))
-      )
-    ])
-    error_message = "Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique."
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.fallback_route == null || (v.fallback_route.endpoint_names == null || (length(v.fallback_route.endpoint_names) >= 0 && length(v.fallback_route.endpoint_names) <= 64))
-      )
-    ])
-    error_message = "must be between 0 and 64 characters"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.cloud_to_device == null || (v.cloud_to_device.max_delivery_count == null || (v.cloud_to_device.max_delivery_count >= 1 && v.cloud_to_device.max_delivery_count <= 100))
-      )
-    ])
-    error_message = "must be between 1 and 100"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.cloud_to_device == null || (v.cloud_to_device.feedback == null || (v.cloud_to_device.feedback.max_delivery_count == null || (v.cloud_to_device.feedback.max_delivery_count >= 1 && v.cloud_to_device.feedback.max_delivery_count <= 100)))
-      )
-    ])
-    error_message = "must be between 1 and 100"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.min_tls_version == null || (contains(["1.2"], v.min_tls_version))
-      )
-    ])
-    error_message = "must be one of: 1.2"
   }
   # --- Unconfirmed validation candidates, derived from azurerm_iothub's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
@@ -300,12 +188,24 @@ EOT
   #   source:    [from resourcegroups.ValidateName] !matched
   # path: sku.name
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
+  # path: sku.capacity
+  #   condition: value >= 1 && value <= 200
+  #   message:   must be between 1 and 200
+  # path: event_hub_partition_count
+  #   condition: value >= 2 && value <= 128
+  #   message:   must be between 2 and 128
+  # path: event_hub_retention_in_days
+  #   condition: value >= 1 && value <= 7
+  #   message:   must be between 1 and 7
   # path: file_upload.authentication_type
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: file_upload.identity_id
   #   source:    [from commonids.ValidateUserAssignedIdentityID] !ok
   # path: file_upload.identity_id
   #   source:    [from commonids.ValidateUserAssignedIdentityID] err != nil
+  # path: file_upload.max_delivery_count
+  #   condition: value >= 1 && value <= 100
+  #   message:   must be between 1 and 100
   # path: file_upload.sas_ttl
   #   source:    [from validate.ISO8601Duration] !ok
   # path: file_upload.sas_ttl
@@ -318,16 +218,28 @@ EOT
   #   source:    [from validate.ISO8601Duration] !ok
   # path: file_upload.lock_duration
   #   source:    [from validate.ISO8601Duration] err != nil
+  # path: endpoint.type
+  #   condition: contains(["AzureIotHub.StorageContainer", "AzureIotHub.ServiceBusQueue", "AzureIotHub.ServiceBusTopic", "AzureIotHub.EventHub"], value)
+  #   message:   must be one of: AzureIotHub.StorageContainer, AzureIotHub.ServiceBusQueue, AzureIotHub.ServiceBusTopic, AzureIotHub.EventHub
   # path: endpoint.authentication_type
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: endpoint.identity_id
   #   source:    [from commonids.ValidateUserAssignedIdentityID] !ok
   # path: endpoint.identity_id
   #   source:    [from commonids.ValidateUserAssignedIdentityID] err != nil
+  # path: endpoint.endpoint_uri
+  #   condition: length(value) > 0
+  #   message:   must not be empty
   # path: endpoint.entity_path
   #   source:    validation.Any(...) - no translation rule yet, add one
   # path: endpoint.name
   #   source:    [from iothubValidate.IoTHubEndpointName] name == value
+  # path: endpoint.batch_frequency_in_seconds
+  #   condition: value >= 60 && value <= 720
+  #   message:   must be between 60 and 720
+  # path: endpoint.max_chunk_size_in_bytes
+  #   condition: value >= 10485760 && value <= 524288000
+  #   message:   must be between 10485760 and 524288000
   # path: endpoint.encoding
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: endpoint.file_name_format
@@ -346,6 +258,12 @@ EOT
   #   source:    [from resourcegroups.ValidateName: invalid when len(value) == 0]
   # path: endpoint.resource_group_name
   #   source:    [from resourcegroups.ValidateName] !matched
+  # path: endpoint.subscription_id
+  #   condition: can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value))
+  #   message:   must be a valid UUID
+  # path: route.name
+  #   condition: can(regex("^[-_.a-zA-Z0-9]{1,64}$", value))
+  #   message:   Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
   # path: route.source
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: enrichment.key
@@ -356,6 +274,9 @@ EOT
   #   message:   must not be empty
   # path: fallback_route.source
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
+  # path: fallback_route.endpoint_names[*]
+  #   condition: length(value) >= 0 && length(value) <= 64
+  #   message:   must be between 0 and 64 characters
   # path: network_rule_set.default_action
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: network_rule_set.ip_rule.name
@@ -364,12 +285,21 @@ EOT
   #   source:    [from validate.CIDR] re != nil && !re.MatchString(cidr)
   # path: network_rule_set.ip_rule.action
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
+  # path: cloud_to_device.max_delivery_count
+  #   condition: value >= 1 && value <= 100
+  #   message:   must be between 1 and 100
   # path: cloud_to_device.default_ttl
   #   source:    validate.ISO8601DurationBetween: no recognizable `if ... { errors = append(...) }` pattern - read it by hand
   # path: cloud_to_device.feedback.time_to_live
   #   source:    validate.ISO8601DurationBetween: no recognizable `if ... { errors = append(...) }` pattern - read it by hand
+  # path: cloud_to_device.feedback.max_delivery_count
+  #   condition: value >= 1 && value <= 100
+  #   message:   must be between 1 and 100
   # path: cloud_to_device.feedback.lock_duration
   #   source:    validate.ISO8601DurationBetween: no recognizable `if ... { errors = append(...) }` pattern - read it by hand
+  # path: min_tls_version
+  #   condition: contains(["1.2"], value)
+  #   message:   must be one of: 1.2
   # path: identity.type
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: identity.identity_ids[*]

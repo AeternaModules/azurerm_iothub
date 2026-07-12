@@ -21,7 +21,7 @@ resource "azurerm_iothub" "iothubs" {
     content {
       default_ttl = cloud_to_device.value.default_ttl
       dynamic "feedback" {
-        for_each = cloud_to_device.value.feedback != null ? [cloud_to_device.value.feedback] : []
+        for_each = cloud_to_device.value.feedback != null ? cloud_to_device.value.feedback : []
         content {
           lock_duration      = feedback.value.lock_duration
           max_delivery_count = feedback.value.max_delivery_count
@@ -33,7 +33,7 @@ resource "azurerm_iothub" "iothubs" {
   }
 
   dynamic "endpoint" {
-    for_each = each.value.endpoint != null ? [each.value.endpoint] : []
+    for_each = each.value.endpoint != null ? each.value.endpoint : []
     content {
       authentication_type        = endpoint.value.authentication_type
       batch_frequency_in_seconds = endpoint.value.batch_frequency_in_seconds
@@ -95,12 +95,12 @@ resource "azurerm_iothub" "iothubs" {
   }
 
   dynamic "network_rule_set" {
-    for_each = each.value.network_rule_set != null ? [each.value.network_rule_set] : []
+    for_each = each.value.network_rule_set != null ? each.value.network_rule_set : []
     content {
       apply_to_builtin_eventhub_endpoint = network_rule_set.value.apply_to_builtin_eventhub_endpoint
       default_action                     = network_rule_set.value.default_action
       dynamic "ip_rule" {
-        for_each = network_rule_set.value.ip_rule != null ? [network_rule_set.value.ip_rule] : []
+        for_each = network_rule_set.value.ip_rule != null ? network_rule_set.value.ip_rule : []
         content {
           action  = ip_rule.value.action
           ip_mask = ip_rule.value.ip_mask
@@ -111,7 +111,7 @@ resource "azurerm_iothub" "iothubs" {
   }
 
   dynamic "route" {
-    for_each = each.value.route != null ? [each.value.route] : []
+    for_each = each.value.route != null ? each.value.route : []
     content {
       condition      = route.value.condition
       enabled        = route.value.enabled
