@@ -33,14 +33,14 @@ Optional:
         - file_name_format (optional)
         - identity_id (optional)
         - max_chunk_size_in_bytes (optional)
-        - name (required)
+        - name (optional)
         - resource_group_name (optional)
         - subscription_id (optional)
-        - type (required)
+        - type (optional)
     - enrichment (block):
-        - endpoint_names (required)
-        - key (required)
-        - value (required)
+        - endpoint_names (optional)
+        - key (optional)
+        - value (optional)
     - fallback_route (block):
         - condition (optional)
         - enabled (optional)
@@ -68,20 +68,20 @@ Optional:
             - name (required)
     - route (block):
         - condition (optional)
-        - enabled (required)
-        - endpoint_names (required)
-        - name (required)
-        - source (required)
+        - enabled (optional)
+        - endpoint_names (optional)
+        - name (optional)
+        - source (optional)
 EOT
 
   type = map(object({
     location                      = string
     name                          = string
     resource_group_name           = string
-    event_hub_partition_count     = optional(number) # Default: 4
-    event_hub_retention_in_days   = optional(number) # Default: 1
-    local_authentication_enabled  = optional(bool)   # Default: true
-    min_tls_version               = optional(string) # Default: "1.2"
+    event_hub_partition_count     = optional(number)
+    event_hub_retention_in_days   = optional(number)
+    local_authentication_enabled  = optional(bool)
+    min_tls_version               = optional(string)
     public_network_access_enabled = optional(bool)
     tags                          = optional(map(string))
     sku = object({
@@ -89,81 +89,73 @@ EOT
       name     = string
     })
     cloud_to_device = optional(object({
-      default_ttl = optional(string) # Default: "PT1H"
+      default_ttl = optional(string)
       feedback = optional(list(object({
-        lock_duration      = optional(string) # Default: "PT60S"
-        max_delivery_count = optional(number) # Default: 10
-        time_to_live       = optional(string) # Default: "PT1H"
+        lock_duration      = optional(string)
+        max_delivery_count = optional(number)
+        time_to_live       = optional(string)
       })))
-      max_delivery_count = optional(number) # Default: 10
+      max_delivery_count = optional(number)
     }))
     endpoint = optional(list(object({
-      authentication_type        = optional(string) # Default: "keyBased"
-      batch_frequency_in_seconds = optional(number) # Default: 300
+      authentication_type        = optional(string)
+      batch_frequency_in_seconds = optional(number)
       connection_string          = optional(string)
       container_name             = optional(string)
-      encoding                   = optional(string) # Default: "Avro"
+      encoding                   = optional(string)
       endpoint_uri               = optional(string)
       entity_path                = optional(string)
-      file_name_format           = optional(string) # Default: "{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}"
+      file_name_format           = optional(string)
       identity_id                = optional(string)
-      max_chunk_size_in_bytes    = optional(number) # Default: 314572800
-      name                       = string
+      max_chunk_size_in_bytes    = optional(number)
+      name                       = optional(string)
       resource_group_name        = optional(string)
       subscription_id            = optional(string)
-      type                       = string
+      type                       = optional(string)
     })))
     enrichment = optional(list(object({
-      endpoint_names = list(string)
-      key            = string
-      value          = string
+      endpoint_names = optional(list(string))
+      key            = optional(string)
+      value          = optional(string)
     })))
     fallback_route = optional(object({
-      condition      = optional(string) # Default: "true"
-      enabled        = optional(bool)   # Default: true
+      condition      = optional(string)
+      enabled        = optional(bool)
       endpoint_names = optional(list(string))
-      source         = optional(string) # Default: "DeviceMessages"
+      source         = optional(string)
     }))
     file_upload = optional(object({
-      authentication_type = optional(string) # Default: "keyBased"
+      authentication_type = optional(string)
       connection_string   = string
       container_name      = string
-      default_ttl         = optional(string) # Default: "PT1H"
+      default_ttl         = optional(string)
       identity_id         = optional(string)
-      lock_duration       = optional(string) # Default: "PT1M"
-      max_delivery_count  = optional(number) # Default: 10
-      notifications       = optional(bool)   # Default: false
-      sas_ttl             = optional(string) # Default: "PT1H"
+      lock_duration       = optional(string)
+      max_delivery_count  = optional(number)
+      notifications       = optional(bool)
+      sas_ttl             = optional(string)
     }))
     identity = optional(object({
       identity_ids = optional(set(string))
       type         = string
     }))
     network_rule_set = optional(list(object({
-      apply_to_builtin_eventhub_endpoint = optional(bool)   # Default: false
-      default_action                     = optional(string) # Default: "Deny"
+      apply_to_builtin_eventhub_endpoint = optional(bool)
+      default_action                     = optional(string)
       ip_rule = optional(list(object({
-        action  = optional(string) # Default: "Allow"
+        action  = optional(string)
         ip_mask = string
         name    = string
       })))
     })))
     route = optional(list(object({
-      condition      = optional(string) # Default: "true"
-      enabled        = bool
-      endpoint_names = list(string)
-      name           = string
-      source         = string
+      condition      = optional(string)
+      enabled        = optional(bool)
+      endpoint_names = optional(list(string))
+      name           = optional(string)
+      source         = optional(string)
     })))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.iothubs : (
-        v.enrichment == null || (length(v.enrichment) <= 10)
-      )
-    ])
-    error_message = "Each enrichment list must contain at most 10 items"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_iothub's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
